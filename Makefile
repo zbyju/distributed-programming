@@ -1,20 +1,17 @@
-solver: folder main.o command-line-args.o
-	g++ ./object/main.o ./object/command-line-args.o -o solver
+SRC_DIR := ./src
+OBJ_DIR := ./object
+SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
+LDFLAGS := 
+CXXFLAGS := -Wall -pedantic
+
+solver: $(OBJ_FILES)
+	g++ $(LDFLAGS) -o $@ $^
 
 run: solver
-	./solver
+	@echo "-----------------START-----------------\n"
+	@./solver
+	@echo "\n------------------END------------------"
 
-clean:
-	rm -f *.o
-	rm -f *.out
-	rm -f solver
-	rm -rf object
-
-folder:
-	mkdir object
-
-main.o: ./src/main.cpp
-	g++ -c ./src/main.cpp -o ./object/main.o
-
-command-line-args.o: ./src/command-line-args.cpp ./src/command-line-args.h
-	g++ -c ./src/command-line-args.cpp -o ./object/command-line-args.o
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
