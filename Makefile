@@ -12,7 +12,7 @@ solver: $(OBJ_FILES)
 
 run: all
 	@echo "-----------------START-----------------\n"
-	@./solver -n 10 -k 2 -f test.txt
+	@./solver -n 10 -k 2 -f ./inputs/graf_10_3.txt
 	@echo "\n------------------END------------------"
 
 folder:

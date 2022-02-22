@@ -1,5 +1,6 @@
 *.out
 solver
 *.o
-./object
-.vscode
+object/
+.vscode/
+inputs/
