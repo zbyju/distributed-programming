@@ -66,8 +66,19 @@ std::shared_ptr<Edge> Graph::findEdgeByIdsSymmetric(uint8_t id1, uint8_t id2) {
   return nullptr;
 }
 
-std::string Graph::matrixToString(uint8_t maxLength) {
+std::shared_ptr<Edge> Graph::findEdgeWithMaxWeight() {
+  if (this->edges.size() == 0) return nullptr;
+  std::shared_ptr<Edge> res = this->edges[0];
+  for (auto e : this->edges) {
+    if (e->getWeight() > res->getWeight()) res = e;
+  }
+  return res;
+}
+
+std::string Graph::matrixToString() {
   std::string res = "";
+  uint8_t maxLength =
+      std::to_string(this->findEdgeWithMaxWeight()->getWeight()).length();
   for (int i = 0; i < this->n; ++i) {
     for (int j = 0; j < this->n; ++j) {
       std::shared_ptr<Edge> e = this->findEdgeByIds(i, j);

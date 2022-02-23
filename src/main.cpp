@@ -15,6 +15,6 @@ int main(int argc, char *argv[]) {
   InputParser ip = InputParser(args_ptr->getInputPath());
 
   std::cout << *ip.getGraph() << std::endl;
-  std::cout << ip.getGraph()->matrixToString(3) << std::endl;
+  std::cout << ip.getGraph()->matrixToString() << std::endl;
   return 0;
 }

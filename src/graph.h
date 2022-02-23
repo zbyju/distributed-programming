@@ -33,7 +33,9 @@ class Graph {
   std::shared_ptr<Edge> findEdgeByIds(uint8_t from, uint8_t to);
   std::shared_ptr<Edge> findEdgeByIdsSymmetric(uint8_t id1, uint8_t id2);
 
+  std::shared_ptr<Edge> findEdgeWithMaxWeight();
+
   friend std::ostream& operator<<(std::ostream&, const Graph&);
-  std::string matrixToString(uint8_t maxLength);
+  std::string matrixToString();
 };
 #endif
