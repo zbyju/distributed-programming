@@ -2,6 +2,7 @@
 
 #include "command-line-args.h"
 #include "input_parser.h"
+#include "node.h"
 
 int main(int argc, char *argv[]) {
   std::unique_ptr<ProgramArgs> args_ptr =
@@ -10,8 +11,10 @@ int main(int argc, char *argv[]) {
     CommandLineArgs::printHelp();
     return 0;
   }
-  std::cout << *args_ptr << std::endl;
 
   InputParser ip = InputParser(args_ptr->getInputPath());
+
+  std::cout << *ip.getGraph() << std::endl;
+  std::cout << ip.getGraph()->matrixToString(3) << std::endl;
   return 0;
 }
