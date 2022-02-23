@@ -1,17 +1,24 @@
 #ifndef EDGE_H
 #define EDGE_H
 
-#include <memory>
+#include <stdint.h>
 
-#include "node.h"
+#include <iostream>
 
 class Edge {
  private:
-  std::shared_ptr<Node> from;
-  std::shared_ptr<Node> to;
+  uint8_t from;
+  uint8_t to;
   uint32_t weight;
 
  public:
+  Edge(uint8_t from, uint8_t to, uint32_t weight);
+
+  uint8_t getFrom();
+  uint8_t getTo();
+  uint32_t getWeight();
+
+  friend std::ostream& operator<<(std::ostream&, const Edge&);
 };
 
 #endif
