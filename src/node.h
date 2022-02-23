@@ -12,6 +12,12 @@ class Node {
   std::vector<std::shared_ptr<Edge>> edges;
 
  public:
+  Node(uint8_t id);
+
+  uint8_t getId() const;
+  std::vector<std::shared_ptr<Edge>>& getEdges();
+  void addEdge(std::shared_ptr<Edge> e);
+  friend std::ostream& operator<<(std::ostream&, const Node&);
 };
 
 #endif
