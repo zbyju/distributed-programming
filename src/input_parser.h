@@ -9,10 +9,11 @@
 class InputParser {
  private:
   std::string inputPath;
+  std::shared_ptr<Graph> graph;
 
  public:
   InputParser(const std::string& inputPath);
-  std::unique_ptr<Graph> getGraph() const;
+  std::shared_ptr<Graph> getGraph();
 };
 
 #endif
