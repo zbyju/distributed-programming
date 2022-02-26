@@ -2,8 +2,8 @@ SRC_DIR := ./src
 OBJ_DIR := ./object
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
-LDFLAGS := 
-CXXFLAGS := -Wall -pedantic -std=c++14
+LDFLAGS := -fsanitize=address -g
+CXXFLAGS := -Wall -pedantic -std=c++14 -fsanitize=address
 
 all: folder solver
 
@@ -12,7 +12,7 @@ solver: $(OBJ_FILES)
 
 run: all
 	@echo "-----------------START-----------------\n"
-	@./solver -n 10 -k 2 -f ./inputs/graf_10_3.txt
+	@MallocNanoZone=0 ./solver -n 10 -k 2 -f ./inputs/graf_10_3.txt
 	@echo "\n------------------END------------------"
 
 folder:
