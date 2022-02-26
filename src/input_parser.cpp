@@ -27,7 +27,7 @@ InputParser::InputParser(const std::string& inputPath) : inputPath(inputPath) {
   while (std::getline(infile, line)) {
     std::istringstream buffer(line);
     for (std::string weightString; buffer >> weightString;) {
-      uint8_t weight = std::stoul(weightString);
+      uint32_t weight = std::stoul(weightString);
       if (weight != 0) {
         this->graph->createEdge(i, j, weight);
       }

@@ -14,7 +14,10 @@ int main(int argc, char *argv[]) {
 
   InputParser ip = InputParser(args_ptr->getInputPath());
 
-  std::cout << *ip.getGraph() << std::endl;
-  std::cout << ip.getGraph()->matrixToString() << std::endl;
+  std::shared_ptr<Graph> g = ip.getGraph();
+
+  g->init();
+
+  std::cout << g->edgesToString() << std::endl;
   return 0;
 }

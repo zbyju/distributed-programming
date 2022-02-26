@@ -18,6 +18,7 @@ class Node {
   std::vector<std::shared_ptr<Edge>>& getEdges();
   void addEdge(std::shared_ptr<Edge> e);
   friend std::ostream& operator<<(std::ostream&, const Node&);
+  std::string edgesToString() const;
 };
 
 #endif
