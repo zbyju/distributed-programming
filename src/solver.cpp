@@ -10,17 +10,16 @@ double Solver::getCalculationTime() const {
 }
 
 Graph Solver::solveDFS() const {
-  for (int i = 0; i < 200000000; ++i) {
-  }
+  std::cout << this->graph->edgesToString() << std::endl;
   return *this->graph;
 }
 
 void Solver::solve() {
   this->calculationStart = clock();
   this->maxWeight = 0;
-  this->graph
+  this->graph->init();
 
-      this->solveDFS();
+  this->solveDFS();
 
   this->calculationEnd = clock();
   std::cout << this->getCalculationTime() << std::endl;

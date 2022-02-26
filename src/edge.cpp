@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <memory>
 
 Edge::Edge(uint8_t from, uint8_t to, uint32_t weight)
     : from(from), to(to), weight(weight), state(undefined) {}
