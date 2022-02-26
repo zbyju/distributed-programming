@@ -85,7 +85,9 @@ std::string Graph::matrixToString() {
       std::string weight = "0";
       if (e != nullptr) weight = std::to_string(e->getWeight());
       std::string padding = " ";
-      while (padding.length() + weight.length() < maxLength + 1) padding += " ";
+      while (padding.length() + weight.length() < (unsigned)maxLength + 1) {
+        padding += " ";
+      }
       res += weight + padding;
     }
     res += "\n";
