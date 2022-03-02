@@ -17,6 +17,23 @@ enum NodeColor { c_undefined, red, green };
 using Edge = tuple<uint8_t, uint8_t, unsigned int, EdgeState>;
 
 /**
+ * @brief Finds an edge in the vector based on id's. It ignores order of id's
+ * (symmetrical find).
+ *
+ * @param edges - vector of edges
+ * @param id1 - id of one of the nodes
+ * @param id2 - id of the other node
+ * @return unique_ptr<Edge> - reference to the edge
+ */
+unique_ptr<Edge> findEdgeByIds(vector<Edge> edges, uint8_t id1, uint8_t id2) {
+  for (auto &e : edges) {
+    if (get<0>(e) == id1 && get<1>(e) == id2) return make_unique<Edge>(e);
+    if (get<0>(e) == id2 && get<1>(e) == id1) return make_unique<Edge>(e);
+  }
+  return nullptr;
+}
+
+/**
  * @brief Prints adjacency matrix.
  *
  * @param n - number of nodes
@@ -79,23 +96,6 @@ string parseArgs(int argc, char *argv[]) {
   if (argc != 3) return "";
   if (strcmp(argv[1], "-f") != 0) return "";
   return argv[2];
-}
-
-/**
- * @brief Finds an edge in the vector based on id's. It ignores order of id's
- * (symmetrical find).
- *
- * @param edges - vector of edges
- * @param id1 - id of one of the nodes
- * @param id2 - id of the other node
- * @return unique_ptr<Edge> - reference to the edge
- */
-unique_ptr<Edge> findEdgeByIds(vector<Edge> edges, uint8_t id1, uint8_t id2) {
-  for (auto &e : edges) {
-    if (get<0>(e) == id1 && get<1>(e) == id2) return make_unique<Edge>(e);
-    if (get<0>(e) == id2 && get<1>(e) == id1) return make_unique<Edge>(e);
-  }
-  return nullptr;
 }
 
 /**
