@@ -252,7 +252,8 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
               unsigned int potentialWeight) {
   ++recursionCount;
 
-  // Check if it is connected and bipartite
+  // Check if it is connected and overwrite best result if current is better
+  // (the graph is bipartite, no need to check that)
   if (chosenWeight > maxWeight && isConnected(colors.size(), edges))
     maxWeight = chosenWeight;
 
