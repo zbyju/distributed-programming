@@ -207,6 +207,34 @@ bool shouldTryNotAdding(const vector<NodeColor> &colors, const Edge &edge) {
 }
 
 /**
+ * @brief Checks if the included edges create a connected subgraph.
+ *
+ * @param n - number of nodes
+ * @param edges - vector of edges
+ * @return bool - True if connected, otherwise false
+ */
+bool isConnected(unsigned int n, vector<Edge> &edges) {
+  vector<bool> connected(n, false);
+  unsigned int m = 0;
+  for (const auto &e : edges) {
+    if (get<3>(e) != included) continue;
+
+    unsigned int id1 = get<0>(e);
+    unsigned int id2 = get<1>(e);
+    if (connected[id1] == false) {
+      ++m;
+      connected[id1] = true;
+    }
+    if (connected[id2] == false) {
+      ++m;
+      connected[id2] = true;
+    }
+    if (m >= n) return true;
+  }
+  return m >= n;
+}
+
+/**
  * @brief The main recursive function that checks all the possible subgraphs and
  * finds the max weight.
  *
@@ -225,9 +253,16 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
   ++recursionCount;
 
   // Check if it is connected and bipartite
-  if (chosenWeight > maxWeight) maxWeight = chosenWeight;
+  if (chosenWeight > maxWeight && isConnected(colors.size(), edges))
+    maxWeight = chosenWeight;
+
+  // Check if we are at the end of the calculation or if there is still a
+  // potential to beat the best score (weight)
   if (potentialWeight <= maxWeight || index >= edges.size()) return;
 
+  // Take the next edge and try to include it while coloring its nodes Green -
+  // Red and then Red - Green (if possible) and also try not including it (if it
+  // can find a better result)
   Edge nextEdge = edges.at(index);
   get<3>(nextEdge) = included;
   edges[index] = nextEdge;
@@ -269,19 +304,22 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
  */
 unsigned int solve(unsigned int n, vector<Edge> &edges,
                    vector<NodeColor> &colors) {
-  clock_t calculationStart = clock();
+  // Initiate the variables for the calculation
+  sort(edges.begin(), edges.end(), sortByWeight);
+  colors.resize(n, c_undefined);
+  colors[0] = red;
+
+  // Initiate the variables for the analytics
   clock_t calculationEnd;
   recursionCount = 0;
   maxWeight = 0;
-
-  // Init
-  sort(edges.begin(), edges.end(), sortByWeight);
-  colors.resize(n, c_undefined);
+  clock_t calculationStart = clock();
 
   solveDFS(colors, edges, 0, getChosenWeight(edges), getPotentialWeight(edges));
 
   calculationEnd = clock();
 
+  // Print the result
   printResult(calculateTime(calculationStart, calculationEnd));
   return maxWeight;
 }
@@ -294,16 +332,20 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
  * @return int - status code
  */
 int main(int argc, char *argv[]) {
+  // Get the inputs from the terminal
   string inputPath = parseArgs(argc, argv);
   if (inputPath == "") return 1;
 
+  // Prepare variables for calculation
   unsigned int n;
   vector<Edge> edges;
   vector<NodeColor> colors;
 
+  // Parse the file and get the structure of the graph
   n = parseFile(inputPath, edges);
   printGraph(n, edges);
 
+  // Run the calculation
   solve(n, edges, colors);
 
   return 0;
