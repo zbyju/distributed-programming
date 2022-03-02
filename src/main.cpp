@@ -79,10 +79,10 @@ void printEdgeWeights(vector<Edge> &edges) {
  * @param time
  */
 void printResult(double time) {
-  cout << endl << "=========================" << endl;
   cout << "Max weight: " << maxWeight << endl;
   cout << "Calculation time: " << time << endl;
   cout << "Recursion call count: " << recursionCount << endl;
+  cout << "=========================" << endl;
 }
 
 /**
@@ -337,6 +337,8 @@ int main(int argc, char *argv[]) {
   string inputPath = parseArgs(argc, argv);
   if (inputPath == "") return 1;
 
+  cout << "*** Calculating file: " << inputPath << " ***" << endl;
+
   // Prepare variables for calculation
   unsigned int n;
   vector<Edge> edges;
@@ -344,7 +346,7 @@ int main(int argc, char *argv[]) {
 
   // Parse the file and get the structure of the graph
   n = parseFile(inputPath, edges);
-  printGraph(n, edges);
+  // printGraph(n, edges);
 
   // Run the calculation
   solve(n, edges, colors);
