@@ -47,7 +47,6 @@ unsigned int parseFile(string &inputPath, vector<Edge> &edges) {
       uint32_t weight = stoul(weightString);
       if (weight != 0 && findEdgeByIds(edges, i, j) == nullptr) {
         edges.push_back(make_tuple(i, j, weight, s_undefined));
-        cout << edges.size() << ", i: " << i << ", j: " << j << endl;
       }
       ++j;
     }
@@ -124,12 +123,10 @@ bool shouldTryNotAdding(const vector<NodeColor> &colors, const Edge &edge) {
   return !((c1 == red && c2 == green) || (c1 == green && c2 == red));
 }
 
-void solveDFS(vector<NodeColor> colors, vector<Edge> edges,
-              unsigned int index) {
+void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
+              unsigned int index, unsigned int chosenWeight,
+              unsigned int potentialWeight) {
   ++recursionCount;
-  if (recursionCount % 100000 == 0) cout << recursionCount << endl;
-  unsigned int chosenWeight = getChosenWeight(edges);
-  unsigned int potentialWeight = getPotentialWeight(edges);
 
   // Check if it is connected and bipartite
   if (chosenWeight > maxWeight) maxWeight = chosenWeight;
@@ -143,20 +140,23 @@ void solveDFS(vector<NodeColor> colors, vector<Edge> edges,
     vector<NodeColor> redgreen(colors);
     redgreen[get<0>(nextEdge)] = red;
     redgreen[get<1>(nextEdge)] = green;
-    solveDFS(redgreen, edges, index + 1);
+    solveDFS(redgreen, edges, index + 1, chosenWeight + get<2>(nextEdge),
+             potentialWeight);
   }
 
   if (canColorGreenRed(colors, nextEdge)) {
     vector<NodeColor> greenred(colors);
     greenred[get<0>(nextEdge)] = green;
     greenred[get<1>(nextEdge)] = red;
-    solveDFS(greenred, edges, index + 1);
+    solveDFS(greenred, edges, index + 1, chosenWeight + get<2>(nextEdge),
+             potentialWeight);
   }
 
   if (shouldTryNotAdding(colors, nextEdge)) {
     get<3>(nextEdge) = excluded;
     edges[index] = nextEdge;
-    solveDFS(colors, edges, index + 1);
+    solveDFS(colors, edges, index + 1, chosenWeight,
+             potentialWeight - get<2>(nextEdge));
   }
 }
 
@@ -171,7 +171,7 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
   sort(edges.begin(), edges.end(), sortByWeight);
   colors.resize(n, c_undefined);
 
-  solveDFS(colors, edges, 0);
+  solveDFS(colors, edges, 0, getChosenWeight(edges), getPotentialWeight(edges));
 
   calculationEnd = clock();
 
