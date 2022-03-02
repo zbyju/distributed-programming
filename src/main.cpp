@@ -86,6 +86,28 @@ void printResult(double time) {
 }
 
 /**
+ * @brief Finds the node that has the most edges that are incident with it
+ *
+ * @param n - number of nodes
+ * @param edges - vector of edges
+ * @return uint8_t - id of the node
+ */
+uint8_t findNodeWithMostEdges(unsigned int n, const vector<Edge> &edges) {
+  vector<unsigned int> counts(n, 0);
+  unsigned int maxCount = 0;
+  uint8_t maxNodeId = 0;
+  for (const auto &e : edges) {
+    unsigned int count = counts[get<0>(e)];
+    ++count;
+    if (count > maxCount) {
+      maxCount = count;
+      maxNodeId = get<0>(e);
+    }
+  }
+  return maxNodeId;
+}
+
+/**
  * @brief Parses args from terminal.
  *
  * @param argc - number of arguments
@@ -308,13 +330,15 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
   // Initiate the variables for the calculation
   sort(edges.begin(), edges.end(), sortByWeight);
   colors.resize(n, c_undefined);
-  colors[0] = red;
 
   // Initiate the variables for the analytics
   clock_t calculationEnd;
   recursionCount = 0;
   maxWeight = 0;
   clock_t calculationStart = clock();
+
+  uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
+  colors[maxNodeId] = red;
 
   solveDFS(colors, edges, 0, getChosenWeight(edges), getPotentialWeight(edges));
 
