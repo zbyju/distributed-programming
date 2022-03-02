@@ -4,3 +4,4 @@ solver
 object/
 .vscode/
 inputs/
+.DS_Store

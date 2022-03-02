@@ -12,7 +12,7 @@ solver: $(OBJ_FILES)
 
 run: all
 	@echo "-----------------START-----------------\n"
-	@MallocNanoZone=0 ./solver -n 10 -k 2 -f ./inputs/graf_10_3.txt
+	@MallocNanoZone=0 ./solver -f ./inputs/graf_10_3.txt
 	@echo "\n------------------END------------------"
 
 folder:
