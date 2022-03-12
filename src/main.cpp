@@ -1,4 +1,9 @@
+#include <omp.h>
+#include <string.h>
+#include <sys/time.h>
+
 #include <algorithm>
+#include <atomic>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -12,6 +17,7 @@ using namespace std;
 
 unsigned long recursionCount;
 unsigned int maxWeight;
+float indexMultiplier = 1.4;
 enum EdgeState { s_undefined, included, excluded };
 enum NodeColor { c_undefined, red, green };
 using Edge = tuple<uint8_t, uint8_t, unsigned int, EdgeState>;
@@ -46,8 +52,8 @@ void printGraph(unsigned int n, vector<Edge> &edges) {
     if (get<2>(e) > maxWeight) maxWeight = get<2>(e);
   }
   unsigned int maxLength = to_string(maxWeight).length();
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
+  for (unsigned int i = 0; i < n; ++i) {
+    for (unsigned int j = 0; j < n; ++j) {
       auto edge = findEdgeByIds(edges, i, j);
       string weight = "0";
       if (edge != nullptr) weight = to_string(get<2>(*edge));
@@ -96,12 +102,19 @@ uint8_t findNodeWithMostEdges(unsigned int n, const vector<Edge> &edges) {
   vector<unsigned int> counts(n, 0);
   unsigned int maxCount = 0;
   uint8_t maxNodeId = 0;
+
+#pragma omp parallel for schedule(static)
   for (const auto &e : edges) {
     unsigned int count = counts[get<0>(e)];
     ++count;
     if (count > maxCount) {
-      maxCount = count;
-      maxNodeId = get<0>(e);
+#pragma omp critical
+      {
+        if (count > maxCount) {
+          maxCount = count;
+          maxNodeId = get<0>(e);
+        }
+      }
     }
   }
   return maxNodeId;
@@ -161,8 +174,10 @@ unsigned int parseFile(string &inputPath, vector<Edge> &edges) {
  * @param end - end time
  * @return double - time in seconds
  */
-double calculateTime(clock_t &start, clock_t &end) {
-  return double(end - start) / CLOCKS_PER_SEC;
+double calculateTime(timeval &start, timeval &end) {
+  return ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec -
+          start.tv_usec) /
+         1.e6;
 }
 
 /**
@@ -272,48 +287,84 @@ bool isConnected(unsigned int n, vector<Edge> &edges) {
 void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
               unsigned int index, unsigned int chosenWeight,
               unsigned int potentialWeight) {
-  ++recursionCount;
-
+#pragma omp atomic
+  recursionCount++;
+#pragma omp critical
+  {
+    printf("%d: ", edges);
+    for (auto &e : edges) {
+      char state;
+      if (get<3>(e) == included) state = 'i';
+      if (get<3>(e) == excluded) state = 'e';
+      if (get<3>(e) == s_undefined) state = 'u';
+      printf("%c ", state);
+    }
+    printf("\n");
+  }
+  // #pragma omp critical
+  //   if (index == 3) {
+  //     int tid = omp_get_thread_num();
+  //     printf("Thread id: %d", tid);
+  //     for (auto &e : edges) {
+  //       char state;
+  //       if (get<3>(e) == included) state = 'i';
+  //       if (get<3>(e) == excluded) state = 'e';
+  //       if (get<3>(e) == s_undefined) state = 'u';
+  //       printf("%c ", state);
+  //     }
+  //     printf("\n");
+  //   }
   // Check if it is connected and overwrite best result if current is better
   // (the graph is bipartite, no need to check that)
-  if (chosenWeight > maxWeight && isConnected(colors.size(), edges))
-    maxWeight = chosenWeight;
+  if (chosenWeight > maxWeight && isConnected(colors.size(), edges)) {
+#pragma omp critical
+    {
+      if (chosenWeight > maxWeight) maxWeight = chosenWeight;
+    }
+  }
 
   // Check if we are at the end of the calculation or if there is still a
   // potential to beat the best score (weight)
   if (potentialWeight <= maxWeight || index >= edges.size()) return;
 
   // Take the next edge and try to include it while coloring its nodes Green -
-  // Red and then Red - Green (if possible) and also try not including it (if it
-  // can find a better result)
+  // Red and then Red - Green (if possible) and also try not including it (if
+  // it can find a better result)
   Edge nextEdge = edges.at(index);
   get<3>(nextEdge) = included;
   edges[index] = nextEdge;
 
   // Try to include this edge and color it's nodes Red - Green
   if (canColorRedGreen(colors, nextEdge)) {
-    vector<NodeColor> redgreen(colors);
-    redgreen[get<0>(nextEdge)] = red;
-    redgreen[get<1>(nextEdge)] = green;
-    solveDFS(redgreen, edges, index + 1, chosenWeight + get<2>(nextEdge),
-             potentialWeight);
+#pragma omp task if (index < omp_get_num_threads() * indexMultiplier)
+    {
+      vector<NodeColor> redgreen(colors);
+      redgreen[get<0>(nextEdge)] = red;
+      redgreen[get<1>(nextEdge)] = green;
+      solveDFS(redgreen, edges, index + 1, chosenWeight + get<2>(nextEdge),
+               potentialWeight);
+    }
   }
-
   // Try to include this edge and color it's nodes Green - Red
   if (canColorGreenRed(colors, nextEdge)) {
-    vector<NodeColor> greenred(colors);
-    greenred[get<0>(nextEdge)] = green;
-    greenred[get<1>(nextEdge)] = red;
-    solveDFS(greenred, edges, index + 1, chosenWeight + get<2>(nextEdge),
-             potentialWeight);
+#pragma omp task if (index < omp_get_num_threads() * indexMultiplier)
+    {
+      vector<NodeColor> greenred(colors);
+      greenred[get<0>(nextEdge)] = green;
+      greenred[get<1>(nextEdge)] = red;
+      solveDFS(greenred, edges, index + 1, chosenWeight + get<2>(nextEdge),
+               potentialWeight);
+    }
   }
-
   // Try not to include this edge at all
   if (shouldTryNotAdding(colors, nextEdge)) {
-    get<3>(nextEdge) = excluded;
-    edges[index] = nextEdge;
-    solveDFS(colors, edges, index + 1, chosenWeight,
-             potentialWeight - get<2>(nextEdge));
+#pragma omp task if (index < omp_get_num_threads() * indexMultiplier)
+    {
+      get<3>(nextEdge) = excluded;
+      edges[index] = nextEdge;
+      solveDFS(colors, edges, index + 1, chosenWeight,
+               potentialWeight - get<2>(nextEdge));
+    }
   }
 }
 
@@ -325,24 +376,30 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
  * @param colors - vector of colors of nodes
  * @return unsigned int - max weight
  */
-unsigned int solve(unsigned int n, vector<Edge> &edges,
-                   vector<NodeColor> &colors) {
+unsigned int solve(unsigned int n, vector<Edge> edges,
+                   vector<NodeColor> colors) {
   // Initiate the variables for the calculation
   sort(edges.begin(), edges.end(), sortByWeight);
   colors.resize(n, c_undefined);
 
   // Initiate the variables for the analytics
-  clock_t calculationEnd;
+  timeval calculationEnd, calculationStart;
   recursionCount = 0;
   maxWeight = 0;
-  clock_t calculationStart = clock();
+
+  gettimeofday(&calculationStart, NULL);
 
   uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
   colors[maxNodeId] = red;
 
-  solveDFS(colors, edges, 0, getChosenWeight(edges), getPotentialWeight(edges));
+#pragma omp parallel
+  {
+#pragma omp single
+    solveDFS(colors, edges, 0, getChosenWeight(edges),
+             getPotentialWeight(edges));
+  }
 
-  calculationEnd = clock();
+  gettimeofday(&calculationEnd, NULL);
 
   // Print the result
   printResult(calculateTime(calculationStart, calculationEnd));
