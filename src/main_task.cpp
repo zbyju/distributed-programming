@@ -1,3 +1,4 @@
+#include <math.h>
 #include <omp.h>
 #include <string.h>
 #include <sys/time.h>
@@ -17,7 +18,7 @@ using namespace std;
 
 unsigned long recursionCount;
 unsigned int maxWeight;
-float indexMultiplier = 1.4;
+float indexMultiplier = 20;
 enum EdgeState { s_undefined, included, excluded };
 enum NodeColor { c_undefined, red, green };
 using Edge = tuple<uint8_t, uint8_t, unsigned int, EdgeState>;
@@ -312,7 +313,7 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
 
   // Try to include this edge and color it's nodes Red - Green
   if (canColorRedGreen(colors, nextEdge)) {
-#pragma omp task if (index < omp_get_num_threads() * indexMultiplier)
+#pragma omp task if (pow(2, index) < omp_get_num_threads() * indexMultiplier)
     {
       vector<NodeColor> redgreen(colors);
       redgreen[get<0>(nextEdge)] = red;
@@ -323,7 +324,7 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
   }
   // Try to include this edge and color it's nodes Green - Red
   if (canColorGreenRed(colors, nextEdge)) {
-#pragma omp task if (index < omp_get_num_threads() * indexMultiplier)
+#pragma omp task if (pow(2, index) < omp_get_num_threads() * indexMultiplier)
     {
       vector<NodeColor> greenred(colors);
       greenred[get<0>(nextEdge)] = green;
@@ -334,13 +335,10 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
   }
   // Try not to include this edge at all
   if (shouldTryNotAdding(colors, nextEdge)) {
-#pragma omp task if (index < omp_get_num_threads() * indexMultiplier)
-    {
-      get<3>(nextEdge) = excluded;
-      edges[index] = nextEdge;
-      solveDFS(colors, edges, index + 1, chosenWeight,
-               potentialWeight - get<2>(nextEdge));
-    }
+    get<3>(nextEdge) = excluded;
+    edges[index] = nextEdge;
+    solveDFS(colors, edges, index + 1, chosenWeight,
+             potentialWeight - get<2>(nextEdge));
   }
 }
 
@@ -368,7 +366,7 @@ unsigned int solve(unsigned int n, vector<Edge> edges,
   uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
   colors[maxNodeId] = red;
 
-#pragma omp parallel default(shared)
+#pragma omp parallel
   {
 #pragma omp single
     solveDFS(colors, edges, 0, getChosenWeight(edges),

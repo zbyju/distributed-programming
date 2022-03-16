@@ -15,15 +15,12 @@ starTask:
 
 starRunSeq: cleanStar starSeq 
 	qrun 20c 1 pdp_serial ./star_scripts/run_seq.txt
-	cat run_seq.txt.o*
 
 starRunTask: cleanStar starTask
 	qrun 20c 1 pdp_serial ./star_scripts/run_task_par.txt
-	cat run_task_par.txt.o*
 
 starRunComp: cleanStar starSeq starTask
 	qrun 20c 1 pdp_serial ./star_scripts/task_seq_comparison.txt
-	cat task_seq_comparison.txt.o*
 
 solver: $(OBJ_FILES)
 	g++ $(LDFLAGS) -o $@ $^
