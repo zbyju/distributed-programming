@@ -368,7 +368,7 @@ unsigned int solve(unsigned int n, vector<Edge> edges,
   uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
   colors[maxNodeId] = red;
 
-#pragma omp parallel
+#pragma omp parallel default(shared)
   {
 #pragma omp single
     solveDFS(colors, edges, 0, getChosenWeight(edges),

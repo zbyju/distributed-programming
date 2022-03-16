@@ -14,13 +14,19 @@ starTask:
 	g++ -std=c++14 -fopenmp ./src/main_task.cpp -o solver_task	
 
 starRunSeq: starSeq 
+	cleanStar
 	qrun 20c 1 pdp_serial ./star_scripts/run_seq.txt
+	cat run_seq.txt.o*
 
 starRunTask: starTask
+	cleanStar
 	qrun 20c 1 pdp_serial ./star_scripts/run_task_par.txt
+	cat run_task_par.txt.o*
 
 starRunComp: starSeq starTask
+	cleanStar
 	qrun 20c 1 pdp_serial ./star_scripts/task_seq_comparison.txt
+	cat task_seq_comparison.txt.o*
 
 solver: $(OBJ_FILES)
 	g++ $(LDFLAGS) -o $@ $^
@@ -39,6 +45,12 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 clean:
 	rm -f solver
 	rm -rf ./object
+
+cleanStar:
+	rm -f solver
+	rm -f solver_seq
+	rm -f solver_task
+	rm -f ./*.txt.*
 
 runAll: all 10_3 10_5 10_6 10_7 12_3 12_5 12_6 12_9 15_4 15_5 15_6 15_8
 runFast: all 10_3 10_5 10_6 10_7 12_3 12_5 12_6  15_4 15_5 15_6
