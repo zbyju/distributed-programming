@@ -8,10 +8,10 @@ CXXFLAGS := -Wall -pedantic -std=c++14 -fsanitize=address -fopenmp
 all: folder solver
 
 starSeq:
-	g++ -std=c++14 ../src/main_seq.cpp -o solver_seq
+	g++ -std=c++14 ./src/main_seq.cpp -o solver_seq
 
 starSeq:
-	g++ -std=c++14 -fopenmp ../src/main_task.cpp -o solver_task	
+	g++ -std=c++14 -fopenmp ./src/main_task.cpp -o solver_task	
 
 solver: $(OBJ_FILES)
 	g++ $(LDFLAGS) -o $@ $^
