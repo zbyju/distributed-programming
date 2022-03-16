@@ -16,10 +16,10 @@ starTask:
 starRunSeq: starSeq 
 	qrun 20c 1 pdp_serial ./star_scripts/run_seq.txt
 
-starRunSeq: starTask
+starRunTask: starTask
 	qrun 20c 1 pdp_serial ./star_scripts/run_task_par.txt
 
-starRunSeq: starSeq starTask
+starRunComp: starSeq starTask
 	qrun 20c 1 pdp_serial ./star_scripts/task_seq_comparison.txt
 
 solver: $(OBJ_FILES)
