@@ -10,7 +10,7 @@ all: folder solver
 starSeq:
 	g++ -std=c++14 ./src/main_seq.cpp -o solver_seq
 
-starSeq:
+starTask:
 	g++ -std=c++14 -fopenmp ./src/main_task.cpp -o solver_task	
 
 solver: $(OBJ_FILES)
