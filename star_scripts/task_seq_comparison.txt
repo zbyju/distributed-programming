@@ -32,50 +32,50 @@
 ./solver_seq -f ./inputs/graf_10_3.txt
 ./solver_task -f ./inputs/graf_10_3.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_10_5.txt
 ./solver_task -f ./inputs/graf_10_5.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_10_6.txt
 ./solver_task -f ./inputs/graf_10_6.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_10_7.txt
 ./solver_task -f ./inputs/graf_10_7.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_12_3.txt
 ./solver_task -f ./inputs/graf_12_3.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_12_5.txt
 ./solver_task -f ./inputs/graf_12_5.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_12_6.txt
 ./solver_task -f ./inputs/graf_12_6.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_15_4.txt
 ./solver_task -f ./inputs/graf_15_4.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 ./solver_seq -f ./inputs/graf_15_5.txt
 ./solver_task -f ./inputs/graf_15_5.txt
 
-echo "\n=========================================\n"
+echo "================================================"
 
 
 ./solver_seq -f ./inputs/graf_15_6.txt
 ./solver_task -f ./inputs/graf_15_6.txt
 
-echo "\n=========================================\n"
+echo "================================================"

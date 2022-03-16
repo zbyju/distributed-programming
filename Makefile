@@ -13,18 +13,15 @@ starSeq:
 starTask:
 	g++ -std=c++14 -fopenmp ./src/main_task.cpp -o solver_task	
 
-starRunSeq: starSeq 
-	cleanStar
+starRunSeq: cleanStar starSeq 
 	qrun 20c 1 pdp_serial ./star_scripts/run_seq.txt
 	cat run_seq.txt.o*
 
-starRunTask: starTask
-	cleanStar
+starRunTask: cleanStar starTask
 	qrun 20c 1 pdp_serial ./star_scripts/run_task_par.txt
 	cat run_task_par.txt.o*
 
-starRunComp: starSeq starTask
-	cleanStar
+starRunComp: cleanStar starSeq starTask
 	qrun 20c 1 pdp_serial ./star_scripts/task_seq_comparison.txt
 	cat task_seq_comparison.txt.o*
 
