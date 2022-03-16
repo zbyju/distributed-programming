@@ -289,31 +289,7 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
               unsigned int potentialWeight) {
 #pragma omp atomic
   recursionCount++;
-#pragma omp critical
-  {
-    printf("%d: ", edges);
-    for (auto &e : edges) {
-      char state;
-      if (get<3>(e) == included) state = 'i';
-      if (get<3>(e) == excluded) state = 'e';
-      if (get<3>(e) == s_undefined) state = 'u';
-      printf("%c ", state);
-    }
-    printf("\n");
-  }
-  // #pragma omp critical
-  //   if (index == 3) {
-  //     int tid = omp_get_thread_num();
-  //     printf("Thread id: %d", tid);
-  //     for (auto &e : edges) {
-  //       char state;
-  //       if (get<3>(e) == included) state = 'i';
-  //       if (get<3>(e) == excluded) state = 'e';
-  //       if (get<3>(e) == s_undefined) state = 'u';
-  //       printf("%c ", state);
-  //     }
-  //     printf("\n");
-  //   }
+
   // Check if it is connected and overwrite best result if current is better
   // (the graph is bipartite, no need to check that)
   if (chosenWeight > maxWeight && isConnected(colors.size(), edges)) {
