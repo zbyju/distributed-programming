@@ -13,6 +13,15 @@ starSeq:
 starTask:
 	g++ -std=c++14 -fopenmp ./src/main_task.cpp -o solver_task	
 
+starRunSeq: starSeq 
+	qrun 20c 1 pdp_serial ./star_scripts/run_seq.txt
+
+starRunSeq: starTask
+	qrun 20c 1 pdp_serial ./star_scripts/run_task_par.txt
+
+starRunSeq: starSeq starTask
+	qrun 20c 1 pdp_serial ./star_scripts/task_seq_comparison.txt
+
 solver: $(OBJ_FILES)
 	g++ $(LDFLAGS) -o $@ $^
 
