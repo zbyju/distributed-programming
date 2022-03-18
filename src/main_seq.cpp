@@ -47,8 +47,8 @@ void printGraph(unsigned int n, vector<Edge> &edges) {
     if (get<2>(e) > maxWeight) maxWeight = get<2>(e);
   }
   unsigned int maxLength = to_string(maxWeight).length();
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
+  for (unsigned int i = 0; i < n; ++i) {
+    for (unsigned int j = 0; j < n; ++j) {
       auto edge = findEdgeByIds(edges, i, j);
       string weight = "0";
       if (edge != nullptr) weight = to_string(get<2>(*edge));

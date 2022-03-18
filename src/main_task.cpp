@@ -18,7 +18,7 @@ using namespace std;
 
 unsigned long recursionCount;
 unsigned int maxWeight;
-float indexMultiplier = 20;
+float indexMultiplier = 1000000;
 enum EdgeState { s_undefined, included, excluded };
 enum NodeColor { c_undefined, red, green };
 using Edge = tuple<uint8_t, uint8_t, unsigned int, EdgeState>;
@@ -313,7 +313,7 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
 
   // Try to include this edge and color it's nodes Red - Green
   if (canColorRedGreen(colors, nextEdge)) {
-#pragma omp task if (pow(2, index) < omp_get_num_threads() * indexMultiplier)
+#pragma omp task
     {
       vector<NodeColor> redgreen(colors);
       redgreen[get<0>(nextEdge)] = red;
@@ -324,7 +324,7 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
   }
   // Try to include this edge and color it's nodes Green - Red
   if (canColorGreenRed(colors, nextEdge)) {
-#pragma omp task if (pow(2, index) < omp_get_num_threads() * indexMultiplier)
+#pragma omp task
     {
       vector<NodeColor> greenred(colors);
       greenred[get<0>(nextEdge)] = green;

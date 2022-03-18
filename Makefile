@@ -46,31 +46,58 @@ cleanStar:
 	rm -f solver_task
 	rm -f ./*.txt.*
 
-runAll: all 10_3 10_5 10_6 10_7 12_3 12_5 12_6 12_9 15_4 15_5 15_6 15_8
-runFast: all 10_3 10_5 10_6 10_7 12_3 12_5 12_6  15_4 15_5 15_6
-runSlow: all 12_9 15_8
+runAll: 10_3 10_5 10_6 10_7 12_3 12_5 12_6 12_9 15_4 15_5 15_6 15_8
+runFast: 10_3 10_5 10_6 10_7 12_3 12_5 12_6  15_4 15_5 15_6
+runFastSeq: 10_3_s 10_5_s 10_6_s 10_7_s 12_3_s 12_5_s 12_6_s  15_4_s 15_5_s 15_6_s
+runSlow: 12_9 15_8
 
 10_3:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 10_5:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 10_6:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 10_7:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 12_3:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 12_5:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 12_6:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 12_9:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 15_4:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 15_5:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 15_6:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
 15_8:
-	@MallocNanoZone=0 ./solver -f ./inputs/graf_$@.txt
+	@MallocNanoZone=0 ./solver_task -f ./inputs/graf_$@.txt
+
+
+10_3_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_10_3.txt
+10_5_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_10_5.txt
+10_6_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_10_6.txt
+10_7_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_10_7.txt
+12_3_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_12_3.txt
+12_5_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_12_5.txt
+12_6_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_12_6.txt
+12_9_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_12_9.txt
+15_4_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_15_4.txt
+15_5_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_15_5.txt
+15_6_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_15_6.txt
+15_8_s:
+	@MallocNanoZone=0 ./solver_seq -f ./inputs/graf_15_8.txt
