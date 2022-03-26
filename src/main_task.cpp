@@ -1,5 +1,6 @@
 #include <math.h>
 #include <omp.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 
@@ -180,6 +181,7 @@ double calculateTime(timeval &start, timeval &end) {
           start.tv_usec) /
          1.e6;
 }
+double calculateTime(double start, double end) { return end - start; }
 
 /**
  * @brief Function for sorting edges by weight (highest weight first).
@@ -357,11 +359,11 @@ unsigned int solve(unsigned int n, vector<Edge> edges,
   colors.resize(n, c_undefined);
 
   // Initiate the variables for the analytics
-  timeval calculationEnd, calculationStart;
+  double calculationEnd, calculationStart;
   recursionCount = 0;
   maxWeight = 0;
 
-  gettimeofday(&calculationStart, NULL);
+  calculationStart = omp_get_wtime();
 
   uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
   colors[maxNodeId] = red;
@@ -373,7 +375,7 @@ unsigned int solve(unsigned int n, vector<Edge> edges,
              getPotentialWeight(edges));
   }
 
-  gettimeofday(&calculationEnd, NULL);
+  calculationEnd = omp_get_wtime();
 
   // Print the result
   printResult(calculateTime(calculationStart, calculationEnd));
