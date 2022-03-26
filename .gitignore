@@ -1,5 +1,5 @@
 *.out
-solver
+solver_*
 *.o
 object/
 .vscode/
