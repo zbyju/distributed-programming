@@ -349,6 +349,10 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
   }
 }
 
+/**
+ * Generate number of threads * 10 number of states.
+ * The code is same as DFS but adds the states into queue instead.
+ */
 void generateStates(vector<State> &states, State &init) {
   unsigned int numberOfStatesToGenerate;
 #pragma omp parallel
@@ -360,8 +364,6 @@ void generateStates(vector<State> &states, State &init) {
   while (numberOfStates < numberOfStatesToGenerate && !q.empty()) {
     State front = q.front();
     q.pop();
-
-    // cout << "adding with index: " << front.index << endl;
 
     if (front.chosenWeight > maxWeight &&
         isConnected(front.colors.size(), front.edges)) {
@@ -409,6 +411,7 @@ void generateStates(vector<State> &states, State &init) {
     numberOfStates = q.size();
   }
 
+  // Convert queue to vector
   while (!q.empty()) {
     states.emplace_back(q.front());
     q.pop();
@@ -447,7 +450,8 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
   generateStates(states, init);
   genEnd = clock();
 
-#pragma omp parallel for default(shared)
+  // Main for-loop to go through all the states
+#pragma omp parallel for default(shared) schedule(dynamic, 1)
   for (long unsigned int i = 0; i < states.size(); ++i) {
     State s = states.at(i);
     solveDFS(s.colors, s.edges, s.index, s.chosenWeight, s.potentialWeight);

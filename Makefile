@@ -7,20 +7,33 @@ CXXFLAGS := -Wall -pedantic -std=c++14 -fsanitize=address -fopenmp
 
 all: folder solverSeq solverTask solverData
 
-solverSeq:
+solverSeq: ./src/main_seq.cpp
 	g++ $(CXXFLAGS) ./src/main_seq.cpp -o solver_seq
 
-solverTask:
+solverTask: ./src/main_task.cpp
 	g++ $(CXXFLAGS) ./src/main_task.cpp -o solver_task
 
-solverData:
+solverData: ./src/main_data.cpp
 	g++ $(CXXFLAGS) ./src/main_data.cpp -o solver_data
+
+INPUT := 15_6
 
 run: all
 	@echo "-----------------START-----------------\n"
-	./solver_seq -f ./inputs/graf_15_6.txt
-	./solver_task -f ./inputs/graf_15_6.txt
-	./solver_data -f ./inputs/graf_15_6.txt
+	./solver_seq -f ./inputs/graf_${INPUT}.txt
+	./solver_task -f ./inputs/graf_${INPUT}.txt
+	./solver_data -f ./inputs/graf_${INPUT}.txt
+	@echo "\n------------------END------------------"
+
+runSD: folder solverData solverSeq
+	@echo "-----------------START-----------------\n"
+	./solver_seq -f ./inputs/graf_${INPUT}.txt
+	./solver_data -f ./inputs/graf_${INPUT}.txt
+	@echo "\n------------------END------------------"
+
+runData: folder solverData
+	@echo "-----------------START-----------------\n"
+	./solver_data -f ./inputs/graf_${INPUT}.txt
 	@echo "\n------------------END------------------"
 
 folder:
