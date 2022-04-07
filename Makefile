@@ -15,6 +15,11 @@ solverTask:
 
 solverData:
 	g++ $(CXXFLAGS) ./src/main_data.cpp -o solver_data
+solverMpi:
+	mpic++ $(CXXFLAGS) ./src/main_mpi.cpp -o solver_data
+
+runMpi: solverMpi
+	mpirun -np 5 ./solver_data -f ./inputs/graf_15_6.txt
 
 run: all
 	@echo "-----------------START-----------------\n"
