@@ -9,6 +9,7 @@
 #include <memory>
 #include <queue>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -16,7 +17,7 @@
 #include "mpi.h"
 
 #define NODE_SIZE 20
-#define EDGE_SIZE 200
+#define EDGE_SIZE 60
 
 using namespace std;
 
@@ -430,6 +431,21 @@ queue<State> generateStatesQueue(State &init,
   return q;
 }
 
+void checkColorsSize(unsigned int needed) {
+  if (needed > NODE_SIZE) {
+    cout << "Color array too small: " << NODE_SIZE << " need:" << needed
+         << endl;
+    throw std::runtime_error("Color array too small");
+  }
+}
+
+void checkEdgesSize(unsigned int needed) {
+  if (needed > EDGE_SIZE) {
+    cout << "Edge array too small: " << EDGE_SIZE << " need:" << needed << endl;
+    throw std::runtime_error("Edge array too small");
+  }
+}
+
 void generateStates(vector<State> &states, State &init,
                     unsigned int statesToGenerate = 50) {
   queue<State> q = generateStatesQueue(init, statesToGenerate);
@@ -447,6 +463,8 @@ Message stateToMessage(State &state) {
   message.potentialWeight = state.potentialWeight;
   message.node_length = state.colors.size();
   message.edge_length = state.edges.size();
+  checkColorsSize(state.colors.size());
+  checkEdgesSize(state.edges.size());
   int i = 0;
   for (auto c : state.colors) {
     message.colors[i] = c;
@@ -505,26 +523,22 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
   queue<State> states;
   State init = State(colors, edges, 0, getChosenWeight(edges),
                      getPotentialWeight(edges));
-  states = generateStatesQueue(init);
+  states = generateStatesQueue(init, processes * 10);
 
   // Master is already working
   uint8_t workingProcesses = 1;
   unsigned int solution;
   MPI_Status status;
+  State current;
+  Message message;
 
   // Send work to all slaves
   while (!states.empty() && workingProcesses < processes) {
-    State current = states.front();
-    Message message = stateToMessage(current);
+    current = states.front();
+    message = stateToMessage(current);
     MPI_Send(&message, sizeof(message), MPI_PACKED, workingProcesses,
              tag_new_work, MPI_COMM_WORLD);
     states.pop();
-    // printf("Sending to %d with %d\n", workingProcesses,
-    // current.chosenWeight); printf("Sending to %d ", workingProcesses); for
-    // (auto i : current.colors) {
-    //   printf("%d ", i);
-    // }
-    // printf("\n");
     ++workingProcesses;
   }
 
@@ -535,9 +549,9 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     if (solution > maxWeight) {
       maxWeight = solution;
     }
-    State current = states.front();
+    current = states.front();
     current.setMaxWeight(maxWeight);
-    Message message = stateToMessage(current);
+    message = stateToMessage(current);
     MPI_Send(&message, sizeof(message), MPI_PACKED, status.MPI_SOURCE,
              tag_new_work, MPI_COMM_WORLD);
     states.pop();
@@ -570,8 +584,11 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
  */
 void solveSlave(int rank) {
   MPI_Status status;
+  Message message;
+  unsigned int numberOfStatesToGenerate;
+#pragma omp parallel
+  { numberOfStatesToGenerate = omp_get_num_threads() * 10; }
   while (true) {
-    Message message;
     MPI_Recv(&message, sizeof(message), MPI_PACKED, 0, MPI_ANY_TAG,
              MPI_COMM_WORLD, &status);
     if (status.MPI_TAG == tag_finished) {
@@ -581,14 +598,8 @@ void solveSlave(int rank) {
       if (state.maxWeight > maxWeight) {
         maxWeight = state.maxWeight;
       }
-      // printf("Received %d ", rank);
-      // for (auto i : state.colors) {
-      //   printf("%d ", i);
-      // }
-      // printf("\n");
-      // printf("Received on %d with %d\n", rank, state.chosenWeight);
       vector<State> states;
-      generateStates(states, state);
+      generateStates(states, state, numberOfStatesToGenerate);
 #pragma omp parallel for default(shared)
       for (long unsigned int i = 0; i < states.size(); ++i) {
         State s = states.at(i);
@@ -625,7 +636,6 @@ int main(int argc, char *argv[]) {
     if (inputPath == "") return 1;
 
     std::cout << "*** Calculating file: " << inputPath << " ***" << endl;
-    std::cout << std::is_trivially_copyable<Message>::value << '\n';
     // Prepare variables for calculation
     unsigned int n;
     vector<Edge> edges;
@@ -633,7 +643,6 @@ int main(int argc, char *argv[]) {
 
     // Parse the file and get the structure of the graph
     n = parseFile(inputPath, edges);
-
     // Run the calculation
     solveMaster(n, edges, colors, rank, processes);
     cout << "===============================================" << endl;
