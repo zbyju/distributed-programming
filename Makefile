@@ -5,7 +5,7 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 LDFLAGS := -fsanitize=address -fopenmp -g
 CXXFLAGS := -Wall -pedantic -std=c++14 -fsanitize=address -fopenmp
 
-INPUT := 15_6
+INPUT := 12_9
 PROCESSCOUNT = 5
 
 all: folder solverSeq solverTask solverData solverMpi
@@ -23,11 +23,11 @@ solverMpi:
 	mpic++ $(CXXFLAGS) ./src/main_mpi.cpp -o solver_mpi
 
 runMpi: solverMpi
-	mpirun -np ${PROCESSCOUNT} ./solver_mpi -f ./inputs/graf_15_6.txt
+	mpirun -np ${PROCESSCOUNT} ./solver_mpi -f ./inputs/graf_${INPUT}.txt
 
 run: all
 	@echo "=================================== START ===================================\n"
-	./solver_seq -f ./inputs/graf_${INPUT}.txt
+	# ./solver_seq -f ./inputs/graf_${INPUT}.txt
 	./solver_task -f ./inputs/graf_${INPUT}.txt
 	./solver_data -f ./inputs/graf_${INPUT}.txt
 	mpirun -np ${PROCESSCOUNT} ./solver_mpi -f ./inputs/graf_${INPUT}.txt
