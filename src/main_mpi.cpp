@@ -373,6 +373,13 @@ void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
   }
 }
 
+/**
+ * @brief BFS algorithm to generate states
+ *
+ * @param init - initial state from which BFS starts
+ * @param statesToGenerate - number of states that should be generated
+ * @return queue<State> - final queue of all the states
+ */
 queue<State> generateStatesQueue(State &init,
                                  unsigned int statesToGenerate = 50) {
   queue<State> q;
@@ -431,21 +438,13 @@ queue<State> generateStatesQueue(State &init,
   return q;
 }
 
-void checkColorsSize(unsigned int needed) {
-  if (needed > NODE_SIZE) {
-    cout << "Color array too small: " << NODE_SIZE << " need:" << needed
-         << endl;
-    throw std::runtime_error("Color array too small");
-  }
-}
-
-void checkEdgesSize(unsigned int needed) {
-  if (needed > EDGE_SIZE) {
-    cout << "Edge array too small: " << EDGE_SIZE << " need:" << needed << endl;
-    throw std::runtime_error("Edge array too small");
-  }
-}
-
+/**
+ * @brief Generate states into a vector
+ *
+ * @param states - final vector
+ * @param init - initial state for BFS
+ * @param statesToGenerate - number of states that should be generated
+ */
 void generateStates(vector<State> &states, State &init,
                     unsigned int statesToGenerate = 50) {
   queue<State> q = generateStatesQueue(init, statesToGenerate);
@@ -455,6 +454,37 @@ void generateStates(vector<State> &states, State &init,
   }
 }
 
+/**
+ * @brief Check if message array is big enough
+ *
+ * @param needed - number of node colors to be stored
+ */
+void checkColorsSize(unsigned int needed) {
+  if (needed > NODE_SIZE) {
+    cout << "Color array too small: " << NODE_SIZE << " need:" << needed
+         << endl;
+    throw std::runtime_error("Color array too small");
+  }
+}
+
+/**
+ * @brief Check if message array is big enough
+ *
+ * @param needed - number of edges to be stored
+ */
+void checkEdgesSize(unsigned int needed) {
+  if (needed > EDGE_SIZE) {
+    cout << "Edge array too small: " << EDGE_SIZE << " need:" << needed << endl;
+    throw std::runtime_error("Edge array too small");
+  }
+}
+
+/**
+ * @brief Convert state to a message
+ *
+ * @param state - state to be converted
+ * @return Message
+ */
 Message stateToMessage(State &state) {
   Message message;
   message.chosenWeight = state.chosenWeight;
@@ -463,8 +493,8 @@ Message stateToMessage(State &state) {
   message.potentialWeight = state.potentialWeight;
   message.node_length = state.colors.size();
   message.edge_length = state.edges.size();
-  checkColorsSize(state.colors.size());
-  checkEdgesSize(state.edges.size());
+  // checkColorsSize(state.colors.size());
+  // checkEdgesSize(state.edges.size());
   int i = 0;
   for (auto c : state.colors) {
     message.colors[i] = c;
@@ -481,15 +511,23 @@ Message stateToMessage(State &state) {
   return message;
 }
 
+/**
+ * @brief Convert message struct to state struct
+ *
+ * @param message - message to convert
+ * @return State
+ */
 State messageToState(Message &message) {
   State state;
   state.chosenWeight = message.chosenWeight;
   state.index = message.index;
   state.maxWeight = message.maxWeight;
   state.potentialWeight = message.potentialWeight;
+  // Go through all node colors and copy them
   for (unsigned int i = 0; i < message.node_length; ++i) {
     state.colors.push_back(static_cast<NodeColor>(message.colors[i]));
   }
+  // Go through all edge indices and make tuple and store it in vector
   for (unsigned int i = 0; i < message.edge_length; ++i) {
     Edge e = make_tuple(message.edgesId1[i], message.edgesId2[i],
                         message.edgesWeight[i],
@@ -500,11 +538,14 @@ State messageToState(Message &message) {
 }
 
 /**
- * @brief Wrapper function that sets up the calculation and analytics.
+ * @brief Wrapper function that sets up the calculation and analytics - master
+ * process
  *
  * @param n - number of nodes
  * @param edges - vector of edges
  * @param colors - vector of colors of nodes
+ * @param rank - rank of master (should be 0)
+ * @param processes - number of processes
  * @return unsigned int - max weight
  */
 unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
@@ -520,6 +561,8 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
 
   uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
   colors[maxNodeId] = red;
+
+  // Generate states
   queue<State> states;
   State init = State(colors, edges, 0, getChosenWeight(edges),
                      getPotentialWeight(edges));
@@ -532,7 +575,7 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
   State current;
   Message message;
 
-  // Send work to all slaves
+  // Send work to all slaves (initial send)
   while (!states.empty() && workingProcesses < processes) {
     current = states.front();
     message = stateToMessage(current);
@@ -542,13 +585,16 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     ++workingProcesses;
   }
 
-  // Receive results and send work again until there is some left
+  // Receive results and send work again until the queue is not empty
   while (!states.empty()) {
+    // Receive result and update global max
     MPI_Recv(&solution, sizeof(solution), MPI_INT, MPI_ANY_SOURCE,
              tag_work_done, MPI_COMM_WORLD, &status);
     if (solution > maxWeight) {
       maxWeight = solution;
     }
+
+    // Get new state and send it to the slave
     current = states.front();
     current.setMaxWeight(maxWeight);
     message = stateToMessage(current);
@@ -557,6 +603,7 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     states.pop();
   }
 
+  // All work is done -> get results from slaves + tell them the work is done
   while (workingProcesses > 1) {
     MPI_Recv(&solution, sizeof(solution), MPI_INT, MPI_ANY_SOURCE,
              tag_work_done, MPI_COMM_WORLD, &status);
@@ -575,12 +622,9 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
 }
 
 /**
- * @brief Wrapper function that sets up the calculation and analytics.
+ * @brief Wrapper function that sets up the calculation for slaves
  *
- * @param n - number of nodes
- * @param edges - vector of edges
- * @param colors - vector of colors of nodes
- * @return unsigned int - max weight
+ * @param rank - rank of the slave (id)
  */
 void solveSlave(int rank) {
   MPI_Status status;
@@ -588,23 +632,34 @@ void solveSlave(int rank) {
   unsigned int numberOfStatesToGenerate;
 #pragma omp parallel
   { numberOfStatesToGenerate = omp_get_num_threads() * 10; }
+
+  // Main loop for calculation
   while (true) {
     MPI_Recv(&message, sizeof(message), MPI_PACKED, 0, MPI_ANY_TAG,
              MPI_COMM_WORLD, &status);
+
+    // If work is finished then break the loop and end
     if (status.MPI_TAG == tag_finished) {
       break;
     } else if (status.MPI_TAG == tag_new_work) {
+      // Get state from message
       State state = messageToState(message);
+      // Update local max to global max
       if (state.maxWeight > maxWeight) {
         maxWeight = state.maxWeight;
       }
+      // Generate states
       vector<State> states;
       generateStates(states, state, numberOfStatesToGenerate);
+
+      // Do task parallelism on generated states
 #pragma omp parallel for default(shared)
       for (long unsigned int i = 0; i < states.size(); ++i) {
         State s = states.at(i);
         solveDFS(s.colors, s.edges, s.index, s.chosenWeight, s.potentialWeight);
       }
+
+      // Send back result
       MPI_Send(&maxWeight, 1, MPI_INT, 0, tag_work_done, MPI_COMM_WORLD);
     } else {
       cout << "ERROR: Unknown tag:" << status.MPI_TAG << endl;
@@ -627,7 +682,9 @@ int main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
+  // Split processes into master and slaves
   if (rank == 0) {
+    // Master - split work between processes, print all results, measure time
     cout << "===============================================" << endl;
     cout << "------------ MPI CALCULATION START ------------" << endl;
     cout << "===============================================" << endl;
@@ -649,6 +706,7 @@ int main(int argc, char *argv[]) {
     cout << "------------- MPI CALCULATION END -------------" << endl;
     cout << "===============================================\n" << endl;
   } else {
+    // Slaves - wait for work, solve, send back result
     solveSlave(rank);
   }
   MPI_Finalize();
