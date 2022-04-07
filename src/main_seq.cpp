@@ -83,7 +83,6 @@ void printResult(double time) {
   cout << "Max weight: " << maxWeight << endl;
   cout << "Calculation time: " << time << endl;
   cout << "Recursion call count: " << recursionCount << endl;
-  cout << "=========================" << endl;
 }
 
 /**
@@ -358,6 +357,9 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
  * @return int - status code
  */
 int main(int argc, char *argv[]) {
+  cout << "===============================================" << endl;
+  cout << "------------ SEQ CALCULATION START ------------" << endl;
+  cout << "===============================================" << endl;
   // Get the inputs from the terminal
   string inputPath = parseArgs(argc, argv);
   if (inputPath == "") return 1;
@@ -375,6 +377,8 @@ int main(int argc, char *argv[]) {
 
   // Run the calculation
   solve(n, edges, colors);
-
+  cout << "===============================================" << endl;
+  cout << "------------- SEQ CALCULATION END -------------" << endl;
+  cout << "===============================================\n" << endl;
   return 0;
 }

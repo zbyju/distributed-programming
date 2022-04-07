@@ -20,7 +20,6 @@
 
 using namespace std;
 
-unsigned long recursionCount;
 unsigned int maxWeight;
 enum EdgeState : uint8_t { s_undefined, included, excluded };
 enum NodeColor : uint8_t { c_undefined, red, green };
@@ -126,15 +125,13 @@ void printEdgeWeights(vector<Edge> &edges) {
 }
 
 /**
- * @brief Prints weight, time and # of recursion calls.
+ * @brief Prints weight, time
  *
  * @param time
  */
 void printResult(double time) {
   cout << "Max weight: " << maxWeight << endl;
   cout << "Calculation time: " << time << endl;
-  cout << "Recursion call count: " << recursionCount << endl;
-  cout << "=========================" << endl;
 }
 void printResult(double time, string title) {
   cout << title << " took time: " << time << endl;
@@ -328,10 +325,6 @@ bool isConnected(unsigned int n, vector<Edge> &edges) {
 void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
               unsigned int index, unsigned int chosenWeight,
               unsigned int potentialWeight) {
-  // printf("%d ", omp_get_thread_num());
-#pragma omp atomic
-  ++recursionCount;
-
   // Check if it is connected and overwrite best result if current is better
   // (the graph is bipartite, no need to check that)
   if (chosenWeight > maxWeight && isConnected(colors.size(), edges)) {
@@ -503,7 +496,6 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
   colors.resize(n, c_undefined);
 
   // Initiate the variables for the analytics
-  recursionCount = 0;
   maxWeight = 0;
   double calculationStart, calculationEnd;
   calculationStart = omp_get_wtime();
@@ -549,7 +541,6 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     MPI_Send(&message, sizeof(message), MPI_PACKED, status.MPI_SOURCE,
              tag_new_work, MPI_COMM_WORLD);
     states.pop();
-    cout << "States left:" << states.size() << endl;
   }
 
   while (workingProcesses > 1) {
@@ -626,6 +617,9 @@ int main(int argc, char *argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
   if (rank == 0) {
+    cout << "===============================================" << endl;
+    cout << "------------ MPI CALCULATION START ------------" << endl;
+    cout << "===============================================" << endl;
     // Get the inputs from the terminal
     string inputPath = parseArgs(argc, argv);
     if (inputPath == "") return 1;
@@ -642,9 +636,13 @@ int main(int argc, char *argv[]) {
 
     // Run the calculation
     solveMaster(n, edges, colors, rank, processes);
+    cout << "===============================================" << endl;
+    cout << "------------- MPI CALCULATION END -------------" << endl;
+    cout << "===============================================\n" << endl;
   } else {
     solveSlave(rank);
   }
   MPI_Finalize();
+
   return 0;
 }
