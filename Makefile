@@ -2,13 +2,13 @@ SRC_DIR := ./src
 OBJ_DIR := ./object
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
-LDFLAGS := -fsanitize=address -fopenmp -g
-CXXFLAGS := -Wall -pedantic -std=c++14 -fsanitize=address -fopenmp
+LDFLAGS := -fopenmp -g
+CXXFLAGS := -Wall -pedantic -std=c++14 -fopenmp
 
 INPUT := 12_9
 PROCESSCOUNT = 5
 
-all: folder solverSeq solverTask solverData solverMpi
+all: solverSeq solverTask solverData solverMpi
 
 solverSeq: ./src/main_seq.cpp
 	g++ $(CXXFLAGS) ./src/main_seq.cpp -o solver_seq
@@ -43,9 +43,6 @@ runData: folder solverData
 	@echo "-----------------START-----------------\n"
 	./solver_data -f ./inputs/graf_${INPUT}.txt
 	@echo "\n------------------END------------------"
-
-folder:
-	mkdir -p object
 
 clean:
 	rm -f solver*
