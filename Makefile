@@ -27,9 +27,9 @@ runMpi: solverMpi
 
 run: all
 	@echo "=================================== START ===================================\n"
-	# ./solver_seq -f ./inputs/graf_${INPUT}.txt
-	./solver_task -f ./inputs/graf_${INPUT}.txt
-	./solver_data -f ./inputs/graf_${INPUT}.txt
+	#./solver_seq -f ./inputs/graf_${INPUT}.txt
+	./solver_task -f ./inputs/graf_${INPUT}.txt -t 10
+	./solver_data -f ./inputs/graf_${INPUT}.txt -t 10
 	mpirun -np ${PROCESSCOUNT} ./solver_mpi -f ./inputs/graf_${INPUT}.txt
 	@echo "=================================== END ==================================="
 
