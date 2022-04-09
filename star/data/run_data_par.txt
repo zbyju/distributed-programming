@@ -27,4 +27,4 @@
 # Do not change.
 #$ -pe ompi 1
 
-../solver_data -f ./inputs/graf_15_6.txt
+../../solver_data -f ./inputs/graf_15_8.txt
