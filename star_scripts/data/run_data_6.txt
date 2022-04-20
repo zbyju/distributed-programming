@@ -27,4 +27,4 @@
 # Do not change.
 #$ -pe ompi 1
 
-../../solver_task -f ../../inputs/graf_15_6.txt -t 4
+../../solver_task -f ../../inputs/graf_15_6.txt -t 8
