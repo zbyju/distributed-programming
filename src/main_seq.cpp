@@ -349,6 +349,19 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
   return maxWeight;
 }
 
+void printStart(const string &input) {
+  cout << "===============================================" << endl;
+  cout << "------------ SEQ CALCULATION START ------------" << endl;
+  cout << "----------------- INPUT: " << input << " -----------------" << endl;
+  cout << "===============================================" << endl;
+}
+
+void printEnd() {
+  cout << "===============================================" << endl;
+  cout << "-------------- SEQ CALCULATION END ------------" << endl;
+  cout << "===============================================\n" << endl;
+}
+
 /**
  * @brief Main function - gets all inputs, prints outputs.
  *
@@ -357,14 +370,11 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
  * @return int - status code
  */
 int main(int argc, char *argv[]) {
-  cout << "===============================================" << endl;
-  cout << "------------ SEQ CALCULATION START ------------" << endl;
-  cout << "===============================================" << endl;
   // Get the inputs from the terminal
   string inputPath = parseArgs(argc, argv);
   if (inputPath == "") return 1;
 
-  cout << "*** Calculating file: " << inputPath << " ***" << endl;
+  printStart(inputPath);
 
   // Prepare variables for calculation
   unsigned int n;
@@ -377,8 +387,7 @@ int main(int argc, char *argv[]) {
 
   // Run the calculation
   solve(n, edges, colors);
-  cout << "===============================================" << endl;
-  cout << "------------- SEQ CALCULATION END -------------" << endl;
-  cout << "===============================================\n" << endl;
+
+  printEnd();
   return 0;
 }

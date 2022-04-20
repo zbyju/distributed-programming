@@ -30,6 +30,12 @@ int tag_new_work = 1;
 int tag_work_done = 2;
 int tag_finished = 0;
 
+struct Args {
+  bool ok;
+  string input;
+  int threads;
+};
+
 struct Message {
   uint8_t colors[NODE_SIZE];
   uint8_t edgesId1[EDGE_SIZE];
@@ -165,12 +171,19 @@ uint8_t findNodeWithMostEdges(unsigned int n, const vector<Edge> &edges) {
  *
  * @param argc - number of arguments
  * @param argv - array of arguments
- * @return string - returns file path to the input file
+ * @return Args - returns struct Args containing all the arguments
  */
-string parseArgs(int argc, char *argv[]) {
-  if (argc != 3) return "";
-  if (strcmp(argv[1], "-f") != 0) return "";
-  return argv[2];
+Args parseArgs(int argc, char *argv[]) {
+  Args args;
+  args.ok = true;
+#pragma omp parallel
+  { args.threads = omp_get_num_threads(); }
+  if (argc < 3 || argc % 2 != 1) args.ok = false;
+  for (int i = 1; i < argc && args.ok; ++i) {
+    if (strcmp(argv[i], "-f") == 0) args.input = argv[i + 1];
+    if (strcmp(argv[i], "-t") == 0) args.threads = stoi(argv[i + 1]);
+  }
+  return args;
 }
 
 /**
@@ -668,6 +681,33 @@ void solveSlave(int rank) {
   return;
 }
 
+void printStart(const string &input, int processes) {
+  unsigned int numberOfThreads;
+#pragma omp parallel
+  { numberOfThreads = omp_get_num_threads(); }
+  cout << "===============================================" << endl;
+  cout << "------------ MPI CALCULATION START ------------" << endl;
+  cout << "----------------- THREADS: " << numberOfThreads
+       << " -----------------" << endl;
+  cout << "---------------- PROCESSES: " << processes << " ----------------"
+       << endl;
+  cout << "-------- INPUT: " << input << " --------" << endl;
+  cout << "===============================================" << endl;
+}
+
+void printSlave(int rank) {
+  unsigned int numberOfThreads;
+#pragma omp parallel
+  { numberOfThreads = omp_get_num_threads(); }
+  printf("  -- SLAVE #%d - THREADS: %d --  \n", rank, numberOfThreads);
+}
+
+void printEnd() {
+  cout << "===============================================" << endl;
+  cout << "-------------- MPI CALCULATION END ------------" << endl;
+  cout << "===============================================\n" << endl;
+}
+
 /**
  * @brief Main function - gets all inputs, prints outputs.
  *
@@ -676,6 +716,11 @@ void solveSlave(int rank) {
  * @return int - status code
  */
 int main(int argc, char *argv[]) {
+  // Get the inputs from the terminal
+  Args args = parseArgs(argc, argv);
+  if (!args.ok || args.threads <= 0 || args.input == "") return 1;
+  omp_set_num_threads(args.threads);
+
   // Init MPI and split code into Master and Slaves
   MPI_Init(&argc, &argv);
   int rank, processes;
@@ -685,28 +730,22 @@ int main(int argc, char *argv[]) {
   // Split processes into master and slaves
   if (rank == 0) {
     // Master - split work between processes, print all results, measure time
-    cout << "===============================================" << endl;
-    cout << "------------ MPI CALCULATION START ------------" << endl;
-    cout << "===============================================" << endl;
-    // Get the inputs from the terminal
-    string inputPath = parseArgs(argc, argv);
-    if (inputPath == "") return 1;
+    printStart(args.input, processes);
 
-    std::cout << "*** Calculating file: " << inputPath << " ***" << endl;
     // Prepare variables for calculation
     unsigned int n;
     vector<Edge> edges;
     vector<NodeColor> colors;
 
     // Parse the file and get the structure of the graph
-    n = parseFile(inputPath, edges);
+    n = parseFile(args.input, edges);
     // Run the calculation
     solveMaster(n, edges, colors, rank, processes);
-    cout << "===============================================" << endl;
-    cout << "------------- MPI CALCULATION END -------------" << endl;
-    cout << "===============================================\n" << endl;
+
+    printEnd();
   } else {
     // Slaves - wait for work, solve, send back result
+    printSlave(rank);
     solveSlave(rank);
   }
   MPI_Finalize();

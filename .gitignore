@@ -4,3 +4,4 @@ solver*
 object/
 .vscode/
 .DS_Store
+gen

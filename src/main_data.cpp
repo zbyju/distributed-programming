@@ -21,6 +21,12 @@ enum EdgeState { s_undefined, included, excluded };
 enum NodeColor { c_undefined, red, green };
 using Edge = tuple<uint8_t, uint8_t, unsigned int, EdgeState>;
 
+struct Args {
+  bool ok;
+  string input;
+  int threads;
+};
+
 struct State {
   vector<NodeColor> colors;
   vector<Edge> edges;
@@ -136,12 +142,19 @@ uint8_t findNodeWithMostEdges(unsigned int n, const vector<Edge> &edges) {
  *
  * @param argc - number of arguments
  * @param argv - array of arguments
- * @return string - returns file path to the input file
+ * @return Args - returns struct Args containing all the arguments
  */
-string parseArgs(int argc, char *argv[]) {
-  if (argc != 3) return "";
-  if (strcmp(argv[1], "-f") != 0) return "";
-  return argv[2];
+Args parseArgs(int argc, char *argv[]) {
+  Args args;
+  args.ok = true;
+#pragma omp parallel
+  { args.threads = omp_get_num_threads(); }
+  if (argc < 3 || argc % 2 != 1) args.ok = false;
+  for (int i = 1; i < argc && args.ok; ++i) {
+    if (strcmp(argv[i], "-f") == 0) args.input = argv[i + 1];
+    if (strcmp(argv[i], "-t") == 0) args.threads = stoi(argv[i + 1]);
+  }
+  return args;
 }
 
 /**
@@ -297,7 +310,6 @@ bool isConnected(unsigned int n, vector<Edge> &edges) {
 void solveDFS(vector<NodeColor> &colors, vector<Edge> &edges,
               unsigned int index, unsigned int chosenWeight,
               unsigned int potentialWeight) {
-  // printf("%d ", omp_get_thread_num());
 #pragma omp atomic
   ++recursionCount;
 
@@ -464,6 +476,24 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
   return maxWeight;
 }
 
+void printStart(const string &input) {
+  unsigned int numberOfThreads;
+#pragma omp parallel
+  { numberOfThreads = omp_get_num_threads(); }
+  cout << "===============================================" << endl;
+  cout << "----------- DATA CALCULATION START ------------" << endl;
+  cout << "----------------- THREADS: " << numberOfThreads
+       << " -----------------" << endl;
+  cout << "-------- INPUT: " << input << " --------" << endl;
+  cout << "===============================================" << endl;
+}
+
+void printEnd() {
+  cout << "===============================================" << endl;
+  cout << "------------- DATA CALCULATION END ------------" << endl;
+  cout << "===============================================\n" << endl;
+}
+
 /**
  * @brief Main function - gets all inputs, prints outputs.
  *
@@ -472,14 +502,11 @@ unsigned int solve(unsigned int n, vector<Edge> &edges,
  * @return int - status code
  */
 int main(int argc, char *argv[]) {
-  cout << "===============================================" << endl;
-  cout << "----------- DATA CALCULATION START ------------" << endl;
-  cout << "===============================================" << endl;
   // Get the inputs from the terminal
-  string inputPath = parseArgs(argc, argv);
-  if (inputPath == "") return 1;
-
-  cout << "*** Calculating file: " << inputPath << " ***" << endl;
+  Args args = parseArgs(argc, argv);
+  if (!args.ok || args.threads <= 0 || args.input == "") return 1;
+  omp_set_num_threads(args.threads);
+  printStart(args.input);
 
   // Prepare variables for calculation
   unsigned int n;
@@ -487,14 +514,11 @@ int main(int argc, char *argv[]) {
   vector<NodeColor> colors;
 
   // Parse the file and get the structure of the graph
-  n = parseFile(inputPath, edges);
-  // printGraph(n, edges);
+  n = parseFile(args.input, edges);
 
   // Run the calculation
   solve(n, edges, colors);
 
-  cout << "===============================================" << endl;
-  cout << "------------- DATA CALCULATION END ------------" << endl;
-  cout << "===============================================\n" << endl;
+  printEnd();
   return 0;
 }

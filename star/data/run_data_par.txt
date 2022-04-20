@@ -27,8 +27,4 @@
 # Do not change.
 #$ -pe ompi 1
 
-<<<<<<<< HEAD:star_scripts/seq/run_seq_4.txt
-./solver_seq -f ./inputs/graf_15_4.txt
-========
-../../solver_task -f ../../inputs/graf_15_8.txt
->>>>>>>> 75b904a40473f686b319d74699f4a039c32d4153:star/task/run_task_par.txt
+../../solver_data -f ../../inputs/graf_15_8.txt
