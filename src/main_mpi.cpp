@@ -664,7 +664,8 @@ void solveSlave(int rank) {
       printf("Slave #%d - done\n", rank);
       break;
     } else if (status.MPI_TAG == tag_new_work) {
-      printf("Slave #%d - received work\n", rank);
+      printf("Slave #%d - received work with %lu nodes and %lu edges\n", rank,
+             message.node_length, message.edge_length);
       // Get state from message
       State state = messageToState(message);
       // Update local max to global max
@@ -673,6 +674,8 @@ void solveSlave(int rank) {
       }
       // Generate states
       vector<State> states;
+      printf("Slave #%d - state with %lu nodes and %lu edges", rank,
+             state.nodes.size(), state.edges.size());
       generateStates(states, state, numberOfStatesToGenerate);
 
       printf("Slave %d - generated %lu(%u) states\n", rank, states.size(),
