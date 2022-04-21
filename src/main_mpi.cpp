@@ -574,13 +574,13 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
 
   uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
   colors[maxNodeId] = red;
-  printf("Master generating");
+  printf("Master generating\n");
   // Generate states
   queue<State> states;
   State init = State(colors, edges, 0, getChosenWeight(edges),
                      getPotentialWeight(edges));
   states = generateStatesQueue(init, processes * 10);
-  printf("Master generated %lu states", states.size());
+  printf("Master generated %lu states\n", states.size());
   // Master is already working
   uint8_t workingProcesses = 1;
   unsigned int solution;
@@ -600,6 +600,7 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
 
   // Receive results and send work again until the queue is not empty
   while (!states.empty()) {
+    printf("Master - sending work - %lu left\n", states.size());
     // Receive result and update global max
     MPI_Recv(&solution, sizeof(solution), MPI_INT, MPI_ANY_SOURCE,
              tag_work_done, MPI_COMM_WORLD, &status);
@@ -616,7 +617,7 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     states.pop();
   }
 
-  printf("Master - work done");
+  printf("Master - work done\n");
   // All work is done -> get results from slaves + tell them the work is
   // done
   while (workingProcesses > 1) {
@@ -655,9 +656,10 @@ void solveSlave(int rank) {
 
     // If work is finished then break the loop and end
     if (status.MPI_TAG == tag_finished) {
-      printf("Slave #%d - done", rank);
+      printf("Slave #%d - done\n", rank);
       break;
     } else if (status.MPI_TAG == tag_new_work) {
+      printf("Slave #%d - received work\n", rank);
       // Get state from message
       State state = messageToState(message);
       // Update local max to global max
@@ -676,6 +678,7 @@ void solveSlave(int rank) {
       }
 
       // Send back result
+      printf("Slave #%d - work done, max: %u\n", rank, maxWeight);
       MPI_Send(&maxWeight, 1, MPI_INT, 0, tag_work_done, MPI_COMM_WORLD);
     } else {
       cout << "ERROR: Unknown tag:" << status.MPI_TAG << endl;
