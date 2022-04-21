@@ -670,6 +670,8 @@ void solveSlave(int rank) {
       vector<State> states;
       generateStates(states, state, numberOfStatesToGenerate);
 
+      printf("Slave %d - generated %u(%u) states\n", rank, states.size(),
+             numberOfStatesToGenerate);
       // Do data parallelism on generated states
 #pragma omp parallel for default(shared)
       for (long unsigned int i = 0; i < states.size(); ++i) {
