@@ -597,6 +597,9 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
   while (!states.empty() && workingProcesses < processes) {
     current = states.front();
     message = stateToMessage(current);
+    printf("Master sending message with %lu=%u nodes; %lu=%u edges",
+           current.colors.size(), message.node_length, current.edges.size(),
+           message.edge_length);
     MPI_Send(&message, sizeof(message), MPI_PACKED, workingProcesses,
              tag_new_work, MPI_COMM_WORLD);
     states.pop();
