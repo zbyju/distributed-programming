@@ -461,7 +461,7 @@ queue<State> generateStatesQueue(State &init,
 void generateStates(vector<State> &states, State &init,
                     unsigned int statesToGenerate = 50) {
   queue<State> q = generateStatesQueue(init, statesToGenerate);
-  print("Slave queue size - %lu\n", q.size());
+  printf("Slave queue size - %lu\n", q.size());
   while (!q.empty()) {
     states.emplace_back(q.front());
     q.pop();
