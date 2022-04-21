@@ -461,10 +461,12 @@ queue<State> generateStatesQueue(State &init,
 void generateStates(vector<State> &states, State &init,
                     unsigned int statesToGenerate = 50) {
   queue<State> q = generateStatesQueue(init, statesToGenerate);
+  print("Slave queue size - %lu\n", q.size());
   while (!q.empty()) {
     states.emplace_back(q.front());
     q.pop();
   }
+  print("Slave vector size - %lu\n", states.size());
 }
 
 /**
@@ -670,7 +672,7 @@ void solveSlave(int rank) {
       vector<State> states;
       generateStates(states, state, numberOfStatesToGenerate);
 
-      printf("Slave %d - generated %u(%u) states\n", rank, states.size(),
+      printf("Slave %d - generated %lu(%u) states\n", rank, states.size(),
              numberOfStatesToGenerate);
       // Do data parallelism on generated states
 #pragma omp parallel for default(shared)
