@@ -580,7 +580,7 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
   State init = State(colors, edges, 0, getChosenWeight(edges),
                      getPotentialWeight(edges));
   states = generateStatesQueue(init, processes * 10);
-  printf("Master generated %d states", states.size());
+  printf("Master generated %lu states", states.size());
   // Master is already working
   uint8_t workingProcesses = 1;
   unsigned int solution;
@@ -616,10 +616,10 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     states.pop();
   }
 
-  printf("Master - work done")
-      // All work is done -> get results from slaves + tell them the work is
-      // done
-      while (workingProcesses > 1) {
+  printf("Master - work done");
+  // All work is done -> get results from slaves + tell them the work is
+  // done
+  while (workingProcesses > 1) {
     MPI_Recv(&solution, sizeof(solution), MPI_INT, MPI_ANY_SOURCE,
              tag_work_done, MPI_COMM_WORLD, &status);
     if (solution > maxWeight) {
