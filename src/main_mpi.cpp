@@ -399,6 +399,8 @@ queue<State> generateStatesQueue(State &init,
   q.push(init);
   unsigned int numberOfStates = q.size();
   while (numberOfStates < statesToGenerate && !q.empty()) {
+    printf("Slave loop %lu=%u (%u); max=%u\n", q.size(), numberOfStates,
+           statesToGenerate, maxWeight);
     State front = q.front();
     q.pop();
 
@@ -412,6 +414,7 @@ queue<State> generateStatesQueue(State &init,
     if (front.potentialWeight <= maxWeight || front.index >= front.edges.size())
       continue;
 
+    printf("Slave loop adding\n");
     // Take the next edge and try to include it while coloring its nodes Green -
     // Red and then Red - Green (if possible) and also try not including it (if
     // it can find a better result)
@@ -447,7 +450,7 @@ queue<State> generateStatesQueue(State &init,
 
     numberOfStates = q.size();
   }
-
+  printf("Slave - returning queue %lu\n", q.size());
   return q;
 }
 
