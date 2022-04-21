@@ -466,7 +466,7 @@ void generateStates(vector<State> &states, State &init,
     states.emplace_back(q.front());
     q.pop();
   }
-  print("Slave vector size - %lu\n", states.size());
+  printf("Slave vector size - %lu\n", states.size());
 }
 
 /**
