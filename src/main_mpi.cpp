@@ -17,7 +17,7 @@
 #include "mpi.h"
 
 #define NODE_SIZE 20
-#define EDGE_SIZE 60
+#define EDGE_SIZE 120
 
 using namespace std;
 
@@ -48,6 +48,15 @@ struct Message {
   unsigned int chosenWeight;
   unsigned int potentialWeight;
   unsigned int maxWeight;
+
+  Message() {
+    this->node_length = 0;
+    this->edge_length = 0;
+    this->index = 0;
+    this->potentialWeight = 0;
+    this->chosenWeight = 0;
+    this->maxWeight = 0;
+  }
 };
 
 struct State {
@@ -511,6 +520,8 @@ Message stateToMessage(State &state) {
   message.potentialWeight = state.potentialWeight;
   message.node_length = state.colors.size();
   message.edge_length = state.edges.size();
+  printf("Master - message in: %lu=%u nodes; %lu=%u", state.colors.size(),
+         message.node_length, state.edges.size());
   // checkColorsSize(state.colors.size());
   // checkEdgesSize(state.edges.size());
   int i = 0;
