@@ -628,7 +628,7 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     // Get new state and send it to the slave
     current = states.front();
     current.setMaxWeight(maxWeight);
-    message = stateToMessage(current);
+    Message message = stateToMessage(current);
     MPI_Send(&message, sizeof(message), MPI_PACKED, status.MPI_SOURCE,
              tag_new_work, MPI_COMM_WORLD);
     states.pop();
