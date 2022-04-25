@@ -49,14 +49,13 @@ struct Message {
   unsigned int potentialWeight;
   unsigned int maxWeight;
 
-  Message() {
-    this->node_length = 0;
-    this->edge_length = 0;
-    this->index = 0;
-    this->potentialWeight = 0;
-    this->chosenWeight = 0;
-    this->maxWeight = 0;
-  }
+  Message()
+      : node_length(0),
+        edge_length(0),
+        index(0),
+        potentialWeight(0),
+        chosenWeight(0),
+        maxWeight(0) {}
 };
 
 struct State {
