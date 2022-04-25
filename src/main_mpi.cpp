@@ -72,8 +72,8 @@ struct State {
     this->colors = colors;
     this->edges = edges;
     this->index = index;
-    this->chosenWeight = chosenWeight;
     this->potentialWeight = potentialWeight;
+    this->chosenWeight = chosenWeight;
     this->maxWeight = maxWeight;
   }
 
@@ -520,7 +520,7 @@ Message stateToMessage(State &state) {
   message.node_length = state.colors.size();
   message.edge_length = state.edges.size();
   printf("Master - message in: %lu=%u nodes; %lu=%u", state.colors.size(),
-         message.node_length, state.edges.size());
+         message.node_length, state.edges.size(), message.edge_length);
   // checkColorsSize(state.colors.size());
   // checkEdgesSize(state.edges.size());
   int i = 0;
@@ -601,12 +601,11 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
   unsigned int solution;
   MPI_Status status;
   State current;
-  Message message;
 
   // Send work to all slaves (initial send)
   while (!states.empty() && workingProcesses < processes) {
     current = states.front();
-    message = stateToMessage(current);
+    Message message = stateToMessage(current);
     printf("Master sending message with %lu=%u nodes; %lu=%u edges",
            current.colors.size(), message.node_length, current.edges.size(),
            message.edge_length);
