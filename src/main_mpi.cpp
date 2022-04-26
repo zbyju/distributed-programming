@@ -407,8 +407,6 @@ queue<State> generateStatesQueue(State &init,
   q.push(init);
   unsigned int numberOfStates = q.size();
   while (numberOfStates < statesToGenerate && !q.empty()) {
-    printf("Slave loop %lu=%u (%u); max=%u\n", q.size(), numberOfStates,
-           statesToGenerate, maxWeight);
     State front = q.front();
     q.pop();
 
@@ -422,7 +420,6 @@ queue<State> generateStatesQueue(State &init,
     if (front.potentialWeight <= maxWeight || front.index >= front.edges.size())
       continue;
 
-    printf("Slave loop adding\n");
     // Take the next edge and try to include it while coloring its nodes Green -
     // Red and then Red - Green (if possible) and also try not including it (if
     // it can find a better result)
@@ -458,7 +455,6 @@ queue<State> generateStatesQueue(State &init,
 
     numberOfStates = q.size();
   }
-  printf("Slave - returning queue %lu\n", q.size());
   return q;
 }
 
@@ -472,12 +468,10 @@ queue<State> generateStatesQueue(State &init,
 void generateStates(vector<State> &states, State &init,
                     unsigned int statesToGenerate = 50) {
   queue<State> q = generateStatesQueue(init, statesToGenerate);
-  printf("Slave queue size - %lu\n", q.size());
   while (!q.empty()) {
     states.emplace_back(q.front());
     q.pop();
   }
-  printf("Slave vector size - %lu\n", states.size());
 }
 
 /**
@@ -519,8 +513,6 @@ Message stateToMessage(State &state) {
   message.potentialWeight = state.potentialWeight;
   message.node_length = state.colors.size();
   message.edge_length = state.edges.size();
-  printf("Master - message in: %lu=%u nodes; %lu=%u", state.colors.size(),
-         message.node_length, state.edges.size(), message.edge_length);
   // checkColorsSize(state.colors.size());
   // checkEdgesSize(state.edges.size());
   int i = 0;
@@ -589,13 +581,11 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
 
   uint8_t maxNodeId = findNodeWithMostEdges(n, edges);
   colors[maxNodeId] = red;
-  printf("Master generating\n");
   // Generate states
   queue<State> states;
   State init = State(colors, edges, 0, getChosenWeight(edges),
                      getPotentialWeight(edges));
   states = generateStatesQueue(init, processes * 10);
-  printf("Master generated %lu states\n", states.size());
   // Master is already working
   uint8_t workingProcesses = 1;
   unsigned int solution;
@@ -606,9 +596,6 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
   while (!states.empty() && workingProcesses < processes) {
     current = states.front();
     Message message = stateToMessage(current);
-    printf("Master sending message with %lu=%u nodes; %lu=%u edges",
-           current.colors.size(), message.node_length, current.edges.size(),
-           message.edge_length);
     MPI_Send(&message, sizeof(message), MPI_PACKED, workingProcesses,
              tag_new_work, MPI_COMM_WORLD);
     states.pop();
@@ -617,7 +604,6 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
 
   // Receive results and send work again until the queue is not empty
   while (!states.empty()) {
-    printf("Master - sending work - %lu left\n", states.size());
     // Receive result and update global max
     MPI_Recv(&solution, sizeof(solution), MPI_INT, MPI_ANY_SOURCE,
              tag_work_done, MPI_COMM_WORLD, &status);
@@ -634,7 +620,6 @@ unsigned int solveMaster(unsigned int n, vector<Edge> &edges,
     states.pop();
   }
 
-  printf("Master - work done\n");
   // All work is done -> get results from slaves + tell them the work is
   // done
   while (workingProcesses > 1) {
@@ -673,11 +658,8 @@ void solveSlave(int rank) {
 
     // If work is finished then break the loop and end
     if (status.MPI_TAG == tag_finished) {
-      printf("Slave #%d - done\n", rank);
       break;
     } else if (status.MPI_TAG == tag_new_work) {
-      printf("Slave #%d - received work with %u nodes and %u edges\n", rank,
-             message.node_length, message.edge_length);
       // Get state from message
       State state = messageToState(message);
       // Update local max to global max
@@ -686,12 +668,8 @@ void solveSlave(int rank) {
       }
       // Generate states
       vector<State> states;
-      printf("Slave #%d - state with %lu nodes and %lu edges", rank,
-             state.colors.size(), state.edges.size());
       generateStates(states, state, numberOfStatesToGenerate);
 
-      printf("Slave %d - generated %lu(%u) states\n", rank, states.size(),
-             numberOfStatesToGenerate);
       // Do data parallelism on generated states
 #pragma omp parallel for default(shared)
       for (long unsigned int i = 0; i < states.size(); ++i) {
@@ -700,7 +678,6 @@ void solveSlave(int rank) {
       }
 
       // Send back result
-      printf("Slave #%d - work done, max: %u\n", rank, maxWeight);
       MPI_Send(&maxWeight, 1, MPI_INT, 0, tag_work_done, MPI_COMM_WORLD);
     } else {
       cout << "ERROR: Unknown tag:" << status.MPI_TAG << endl;
