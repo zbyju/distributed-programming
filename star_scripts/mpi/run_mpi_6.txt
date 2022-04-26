@@ -63,7 +63,7 @@ INFINIBAND="false"
 # | Parallel program with arguments.                                          |
 # |                                                                           |
 #  ===========================================================================
-MY_PARALLEL_PROGRAM="../../solver_mpi -f ../../inputs/graf_15_6.txt -t 16"
+MY_PARALLEL_PROGRAM="../../solver_mpi -f ../../inputs/graf_15_6.txt -t 8"
 
 #  ===========================================================================
 # |                                                                           |
